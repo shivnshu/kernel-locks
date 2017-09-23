@@ -1,0 +1,32 @@
+root@asg2# insmod module/syncdev.ko 
+root@asg2# mknod /dev/syncdev c 246 0
+
+root@asg2# echo 0 > /sys/kernel/asg2_lock
+
+root@asg2# ./syncbench 1 5000000 99 1
+Total time taken = 12223035067
+----------- Thread Stats ------------
+Thread = 1 num_reads = 4950032 num_writes= 49968 read_cycles= 11912606390 write_cycles = 114934779
+
+root@asg2# ./syncbench 2 5000000 99 1
+num_writes = 2 counter = 3 result = 4
+syncbench: ksync_bench.c:64: parops: Assertion `num_writes == counter && (num_writes+counter == result)' failed.
+Aborted (core dumped)
+
+
+root@asg2# echo 1 > /sys/kernel/asg2_lock
+
+root@asg2# ./syncbench 2 5000000 99 1
+Total time taken = 17249250916
+----------- Thread Stats ------------
+Thread = 1 num_reads = 4950032 num_writes= 49968 read_cycles= 16872083338 write_cycles = 163214710
+Thread = 2 num_reads = 4949760 num_writes= 50240 read_cycles= 16811477210 write_cycles = 166509790
+
+root@asg2# ./syncbench 4 5000000 80 20
+Total time taken = 38703495095
+----------- Thread Stats ------------
+Thread = 1 num_reads = 3999745 num_writes= 1000255 read_cycles= 30390469470 write_cycles = 7712898463
+Thread = 2 num_reads = 4000717 num_writes= 999283 read_cycles= 30986423689 write_cycles = 7106841676
+Thread = 3 num_reads = 3999840 num_writes= 1000160 read_cycles= 30734747959 write_cycles = 7433379275
+Thread = 4 num_reads = 3999523 num_writes= 1000477 read_cycles= 31693468556 write_cycles = 6592158016
+

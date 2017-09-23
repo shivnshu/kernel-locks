@@ -1,0 +1,88 @@
+What is inside?
+---------------
+
+1. module: A kernel module that provides a chardev interface to test and measure 
+   synchronization performance. It can be extended to implement custom synchronization
+   constructs.
+
+2. ksync_bench.c:  User-space program to test the correctness and efficiency of underlying
+   synchronization implementation
+
+How to compile?
+---------------
+
+$ make
+   creates module syncdev.ko and user executable syncbench
+
+How to run?
+-----------
+
+1. sudo su
+
+2. # insmod module/syncdev.ko
+    
+    -- check that a new sysfs entry is created i.e., /sys/kernel/asg2_lock
+       and its initial value is zero (0)
+
+3. execute dmesg and find the exact mknod command
+   e.g., # mknod /dev/syncdev c 246 0
+
+NOTE: Steps 1 to 3 are performed only when you have changed something in the module 
+
+4. Change the lock type by changing the sysfs entry (asg2_lock),
+   Different lock type values are as follows,
+ 
+   SPINLOCK = 1
+
+   RWLOCK = 2               /*kernel read/write lock*/
+   SEQLOCK = 3                /*kernel seqlock*/
+   RCU = 4                    /*kernel RCU*/
+   RWLOCK_CUSTOM = 5          /*Your custom read/write lock*/
+   RESEARCH_LOCK = 6        /*To improve over RCU*/
+
+
+   e.g., to use spin locks, execute
+   echo 1 > /sys/kernel/asg2_lock
+ 
+5. execute 
+           # ./syncbench <numthreads> <ops/thread> <readops (%)> <writeops (%)>
+          
+           e.g., #./syncbench 8 5000000 99 1
+
+          Successful execution will print total and per thread CPU cycles when the above 
+          program terminates
+
+How to implement new locks?
+---------------------------
+
+In the current implementation two types of lock implementation exist.
+  
+  (i)  no locking  (asg2_lock = 0)
+  (ii) kernel spinlock is used (asg2_lock = 1). 
+
+Refer to LOCK_TYPE enum in module/syncdev.c for different locks to be
+implemented. 
+
+To add a new lock type (synchronization method, either kernel provided or custom) 
+following changes are to be done.
+
+1. add the lock in  struct cs_handler -> union (@line #52)
+
+2. provide implementations for init_cs, read_data, write_data and cleanup_cs
+
+3. Make sure your implementation of read_data and write_data invokes mustcall_read and mustcall_write, respectively. (See line #56 and spinlock implementation) 
+
+4. In set_cs_implementation() function, fill the appropriate case (in switch-case construct) with your implementation.
+ 
+5. recompile the module
+
+5. unload the module if already loaded:   #rm -f /dev/syncdev  
+#rmmod syncdev.ko
+
+6. Follow "How to run" steps to test the newly implemented lock
+
+Sample executions with/without synchronization are available in runs.txt.
+
+Note that some test cases will pass even without locking.
+A test case failure results in an abort due to inconsistent shared state. 
+Check read and write implementations in the kernel module. 
