@@ -27,6 +27,7 @@ struct data{
 };
 
 struct data *gdata;
+spinlock_t slock;
 
 typedef enum{
                   NONE=0,
@@ -91,11 +92,17 @@ static int rwlock_cleanup_cs(struct data *gd);
 static int rwlock_write_data(struct data *gd);
 static int rwlock_read_data(struct data *gd, char *buf);
 
-/*XXX Seq Lock */
+/*XXX Seqlock */
 static int seqlock_init_cs(struct data *gd);
 static int seqlock_cleanup_cs(struct data *gd);
 static int seqlock_write_data(struct data *gd);
 static int seqlock_read_data(struct data *gd, char *buf);
+
+/*XXX RCU */
+static int rcu_init_cs(struct data *gd);
+static int rcu_cleanup_cs(struct data *gd);
+static int rcu_write_data(struct data *gd);
+static int rcu_read_data(struct data *gd, char *buf);
 
 
 static  int readit(struct data *gd, char *buf)
@@ -166,6 +173,11 @@ static inline int set_cs_implementation(struct cs_handler *handler, unsigned new
                          handler->write_data = seqlock_write_data;
                          break;
            case RCU:                    /*kernel RCU*/
+                         handler->init_cs = rcu_init_cs;
+                         handler->cleanup_cs = rcu_cleanup_cs;
+                         handler->read_data = rcu_read_data;
+                         handler->write_data = rcu_write_data;
+                         break;
            case RWLOCK_CUSTOM:         /*Your custom read/write lock*/
            case RESEARCH_LOCK:          /*To improve over RCU*/
            default:
@@ -340,6 +352,51 @@ int seqlock_read_data(struct data* gd,char* buf)
         seq = read_seqbegin(&handler->seqlock);
         handler->mustcall_read(gd, buf);
     } while (read_seqretry(&handler->seqlock, seq));
+
+    return 0;
+}
+
+/* RCU Lock implementation */
+int rcu_init_cs(struct data* gd)
+{
+    struct cs_handler *handler = gd->handler;
+    init_rcu_head(&handler->rcu);
+    spin_lock_init(&slock);
+    return 0;
+}
+
+int rcu_cleanup_cs(struct data* gd)
+{
+    return 0;
+}
+
+int rcu_write_data(struct data* gd)
+{
+    struct data *old_gdata, *new_gdata;
+    new_gdata = kmalloc(sizeof(struct data), GFP_KERNEL);
+    spin_lock(&slock);
+    old_gdata = rcu_dereference(gd);
+    memcpy(new_gdata, old_gdata, sizeof(struct data));
+    struct cs_handler *handler = new_gdata->handler;
+    handler->mustcall_write(new_gdata);
+
+    rcu_assign_pointer(gd, new_gdata);
+    spin_unlock(&slock);
+    synchronize_rcu();
+    kfree(old_gdata);
+
+    return 0;
+}
+
+int rcu_read_data(struct data* gd,char* buf)
+{
+    struct data *ld;
+
+    rcu_read_lock();
+    ld = rcu_dereference(gd);
+    struct cs_handler *handler = ld->handler;
+    handler->mustcall_read(ld, buf);
+    rcu_read_unlock();
 
     return 0;
 }
