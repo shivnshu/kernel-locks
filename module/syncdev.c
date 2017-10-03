@@ -6,6 +6,7 @@
 #include <asm/uaccess.h>
 #include <linux/slab.h>
 #include <linux/spinlock.h>
+#include <linux/seqlock.h>
 #include <linux/wait.h>
 #include <linux/sched.h>
 
@@ -48,6 +49,7 @@ struct cs_handler{
                      union{
                               spinlock_t spin;
                               rwlock_t rwlock;
+                              seqlock_t seqlock;
                               struct rcu_head rcu;
                               /*Add your custom lock type here*/
                      };
@@ -83,12 +85,17 @@ static int spinlock_cleanup_cs(struct data *gd);
 static int spinlock_write_data(struct data *gd);
 static int spinlock_read_data(struct data *gd, char *buf);
 
-/*XXX rwlock*/
+/*XXX RWlock*/
 static int rwlock_init_cs(struct data *gd);
 static int rwlock_cleanup_cs(struct data *gd);
 static int rwlock_write_data(struct data *gd);
 static int rwlock_read_data(struct data *gd, char *buf);
 
+/*XXX Seq Lock */
+static int seqlock_init_cs(struct data *gd);
+static int seqlock_cleanup_cs(struct data *gd);
+static int seqlock_write_data(struct data *gd);
+static int seqlock_read_data(struct data *gd, char *buf);
 
 
 static  int readit(struct data *gd, char *buf)
@@ -153,6 +160,11 @@ static inline int set_cs_implementation(struct cs_handler *handler, unsigned new
                          handler->write_data = rwlock_write_data;
                          break;
            case SEQLOCK:               /*kernel seqlock*/
+                         handler->init_cs = seqlock_init_cs;
+                         handler->cleanup_cs = seqlock_cleanup_cs;
+                         handler->read_data = seqlock_read_data;
+                         handler->write_data = seqlock_write_data;
+                         break;
            case RCU:                    /*kernel RCU*/
            case RWLOCK_CUSTOM:         /*Your custom read/write lock*/
            case RESEARCH_LOCK:          /*To improve over RCU*/
@@ -292,6 +304,45 @@ int rwlock_read_data(struct data* gd,char* buf)
     return 0;
 }
 
+/* Seq Lock implementation */
+
+int seqlock_init_cs(struct data* gd)
+{
+    struct cs_handler *handler = gd->handler;
+    seqlock_init(&handler->seqlock);
+    return 0;
+}
+
+int seqlock_cleanup_cs(struct data* gd)
+{
+    return 0;
+}
+
+int seqlock_write_data(struct data* gd)
+{
+    struct cs_handler *handler = gd->handler;
+    BUG_ON(!handler->mustcall_write);
+
+    write_seqlock(&handler->seqlock);
+    handler->mustcall_write(gd);
+    write_sequnlock(&handler->seqlock);
+
+    return 0;
+}
+
+int seqlock_read_data(struct data* gd,char* buf)
+{
+    struct cs_handler *handler = gd->handler;
+    BUG_ON(!handler->mustcall_read);
+
+    unsigned int seq;
+    do {
+        seq = read_seqbegin(&handler->seqlock);
+        handler->mustcall_read(gd, buf);
+    } while (read_seqretry(&handler->seqlock, seq));
+
+    return 0;
+}
 
 
 
