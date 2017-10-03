@@ -1,0 +1,4 @@
+syncbench
+module/*
+!module/Makefile
+!module/syncdev.c
