@@ -83,6 +83,12 @@ static int spinlock_cleanup_cs(struct data *gd);
 static int spinlock_write_data(struct data *gd);
 static int spinlock_read_data(struct data *gd, char *buf);
 
+/*XXX rwlock*/
+static int rwlock_init_cs(struct data *gd);
+static int rwlock_cleanup_cs(struct data *gd);
+static int rwlock_write_data(struct data *gd);
+static int rwlock_read_data(struct data *gd, char *buf);
+
 
 
 static  int readit(struct data *gd, char *buf)
@@ -141,6 +147,11 @@ static inline int set_cs_implementation(struct cs_handler *handler, unsigned new
                          handler->write_data = spinlock_write_data;
                          break;
            case RWLOCK:                /*kernel read/write lock*/
+                         handler->init_cs = rwlock_init_cs;
+                         handler->cleanup_cs = rwlock_cleanup_cs;
+                         handler->read_data = rwlock_read_data;
+                         handler->write_data = rwlock_write_data;
+                         break;
            case SEQLOCK:               /*kernel seqlock*/
            case RCU:                    /*kernel RCU*/
            case RWLOCK_CUSTOM:         /*Your custom read/write lock*/
@@ -234,7 +245,7 @@ int spinlock_write_data(struct data *gd)
 int spinlock_read_data(struct data *gd, char *buf)
 {
   struct cs_handler *handler = gd->handler;
-  BUG_ON(!handler->mustcall_write);
+  BUG_ON(!handler->mustcall_read);
 
   spin_lock(&handler->spin);
   handler->mustcall_read(gd, buf);  /*Call the read CS*/
@@ -244,7 +255,42 @@ int spinlock_read_data(struct data *gd, char *buf)
 
 /*TODO   Your implementations for assignment II*/
 
+/* RW Lock implementation */
+int rwlock_init_cs(struct data *gd)
+{
+    struct cs_handler *handler = gd->handler;
+    rwlock_init(&handler->rwlock);
+    return 0;
+}
 
+int rwlock_cleanup_cs(struct data* gd)
+{
+    return 0;
+}
+
+int rwlock_write_data(struct data* gd)
+{
+    struct cs_handler *handler = gd->handler;
+    BUG_ON(!handler->mustcall_write);
+
+    write_lock(&handler->rwlock);
+    handler->mustcall_write(gd);
+    write_unlock(&handler->rwlock);
+
+    return 0;
+}
+
+int rwlock_read_data(struct data* gd,char* buf)
+{
+    struct cs_handler *handler = gd->handler;
+    BUG_ON(!handler->mustcall_read);
+
+    read_lock(&handler->rwlock);
+    handler->mustcall_read(gd, buf);
+    read_unlock(&handler->rwlock);
+
+    return 0;
+}
 
 
 
