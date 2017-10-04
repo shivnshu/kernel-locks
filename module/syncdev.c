@@ -48,7 +48,8 @@ typedef enum{
 
 // Custom RW lock
 struct customrwlock_t {
-    atomic_t counter;
+    atomic_t readers;
+    spinlock_t slock;
 };
 
 struct cs_handler{
@@ -430,7 +431,8 @@ int rcu_read_data(struct data* gd,char* buf)
 int customlock_init_cs(struct data* gd)
 {
     struct cs_handler *handler = gd->handler;
-    atomic_set(&(handler->customlock.counter), 0x01000000); //Support 0x01000000 readers
+    atomic_set(&(handler->customlock.readers), 0);
+    spin_lock_init(&(handler->customlock.slock));
     return 0;
 }
 
@@ -444,18 +446,16 @@ int customlock_write_data(struct data *gd)
     struct cs_handler *handler = gd->handler;
     BUG_ON(!handler->mustcall_write);
 
+    spin_lock(&(handler->customlock.slock));
     // Busy waiting
     while(1) {
-        if (atomic_read(&(handler->customlock.counter)) == 0x00000000)
-            continue;
-        atomic_cmpxchg(&(handler->customlock.counter), 0x01000000, 0x00000000);
-        if (atomic_read(&(handler->customlock.counter)) == 0x00000000)
+        if (!atomic_read(&(handler->customlock.readers)))
             break;
     }
 
     handler->mustcall_write(gd);
 
-    atomic_set(&(handler->customlock.counter), 0x01000000);
+    spin_unlock(&(handler->customlock.slock));
     return 0;
 }
 
@@ -465,15 +465,16 @@ int customlock_read_data(struct data* gd,char* buf)
     BUG_ON(!handler->mustcall_read);
 
     while(1) {
-        if(atomic_read(&(handler->customlock.counter)) == 0x00000000)
+        if (!spin_trylock(&(handler->customlock.slock)))
             continue;
-        atomic_dec(&(handler->customlock.counter));
+        spin_unlock(&(handler->customlock.slock));
+        atomic_inc(&(handler->customlock.readers));
         break;
     }
 
     handler->mustcall_read(gd, buf);
 
-    atomic_inc(&(handler->customlock.counter));
+    atomic_dec(&(handler->customlock.readers));
     return 0;
 }
 
