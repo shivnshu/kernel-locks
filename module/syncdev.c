@@ -27,6 +27,9 @@ struct data{
 };
 
 struct data *gdata;
+
+// For RCU lock implementation
+struct data __rcu *gblrcu_data;
 spinlock_t slock;
 
 typedef enum{
@@ -345,9 +348,9 @@ int seqlock_write_data(struct data* gd)
 int seqlock_read_data(struct data* gd,char* buf)
 {
     struct cs_handler *handler = gd->handler;
+    unsigned int seq;
     BUG_ON(!handler->mustcall_read);
 
-    unsigned int seq;
     do {
         seq = read_seqbegin(&handler->seqlock);
         handler->mustcall_read(gd, buf);
@@ -359,7 +362,10 @@ int seqlock_read_data(struct data* gd,char* buf)
 /* RCU Lock implementation */
 int rcu_init_cs(struct data* gd)
 {
-    struct cs_handler *handler = gd->handler;
+    struct cs_handler *handler;
+    gblrcu_data = kmalloc(sizeof(struct data), GFP_KERNEL);
+    memcpy(gblrcu_data, gd, sizeof(struct data));
+    handler = gblrcu_data->handler;
     init_rcu_head(&handler->rcu);
     spin_lock_init(&slock);
     return 0;
@@ -367,20 +373,23 @@ int rcu_init_cs(struct data* gd)
 
 int rcu_cleanup_cs(struct data* gd)
 {
+    memcpy(gd, gblrcu_data, sizeof(struct data));
+    kfree(gblrcu_data);
     return 0;
 }
 
 int rcu_write_data(struct data* gd)
 {
     struct data *old_gdata, *new_gdata;
+    struct cs_handler *handler;
     new_gdata = kmalloc(sizeof(struct data), GFP_KERNEL);
     spin_lock(&slock);
-    old_gdata = rcu_dereference(gd);
+    old_gdata = rcu_dereference(gblrcu_data);
     memcpy(new_gdata, old_gdata, sizeof(struct data));
-    struct cs_handler *handler = new_gdata->handler;
+    handler = new_gdata->handler;
     handler->mustcall_write(new_gdata);
 
-    rcu_assign_pointer(gd, new_gdata);
+    rcu_assign_pointer(gblrcu_data, new_gdata);
     spin_unlock(&slock);
     synchronize_rcu();
     kfree(old_gdata);
@@ -391,10 +400,11 @@ int rcu_write_data(struct data* gd)
 int rcu_read_data(struct data* gd,char* buf)
 {
     struct data *ld;
+    struct cs_handler *handler;
 
     rcu_read_lock();
-    ld = rcu_dereference(gd);
-    struct cs_handler *handler = ld->handler;
+    ld = rcu_dereference(gblrcu_data);
+    handler = ld->handler;
     handler->mustcall_read(ld, buf);
     rcu_read_unlock();
 
