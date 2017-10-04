@@ -46,7 +46,10 @@ typedef enum{
 
 }LOCK_TYPE;
 
-
+// Custom RW lock
+struct customrwlock_t {
+    atomic_t counter;
+};
 
 struct cs_handler{
 
@@ -56,6 +59,7 @@ struct cs_handler{
                               seqlock_t seqlock;
                               struct rcu_head rcu;
                               /*Add your custom lock type here*/
+                              struct customrwlock_t customlock;
                      };
 
 
@@ -106,6 +110,12 @@ static int rcu_init_cs(struct data *gd);
 static int rcu_cleanup_cs(struct data *gd);
 static int rcu_write_data(struct data *gd);
 static int rcu_read_data(struct data *gd, char *buf);
+
+/*XXX Custom RW lock */
+static int customlock_init_cs(struct data *gd);
+static int customlock_cleanup_cs(struct data *gd);
+static int customlock_write_data(struct data *gd);
+static int customlock_read_data(struct data *gd, char *buf);
 
 
 static  int readit(struct data *gd, char *buf)
@@ -182,6 +192,11 @@ static inline int set_cs_implementation(struct cs_handler *handler, unsigned new
                          handler->write_data = rcu_write_data;
                          break;
            case RWLOCK_CUSTOM:         /*Your custom read/write lock*/
+                         handler->init_cs = customlock_init_cs;
+                         handler->cleanup_cs = customlock_cleanup_cs;
+                         handler->read_data = customlock_read_data;
+                         handler->write_data = customlock_write_data;
+                         break;
            case RESEARCH_LOCK:          /*To improve over RCU*/
            default:
                     printk(KERN_INFO "Not implemented currently, you have to implement these as shown for the first two cases\n");
@@ -411,6 +426,56 @@ int rcu_read_data(struct data* gd,char* buf)
     return 0;
 }
 
+/* Custom RWlock implementation */
+int customlock_init_cs(struct data* gd)
+{
+    struct cs_handler *handler = gd->handler;
+    atomic_set(&(handler->customlock.counter), 0x01000000); //Support 0x01000000 readers
+    return 0;
+}
+
+int customlock_cleanup_cs(struct data* gd)
+{
+    return 0;
+}
+
+int customlock_write_data(struct data *gd)
+{
+    struct cs_handler *handler = gd->handler;
+    BUG_ON(!handler->mustcall_write);
+
+    // Busy waiting
+    while(1) {
+        if (atomic_read(&(handler->customlock.counter)) == 0x00000000)
+            continue;
+        atomic_cmpxchg(&(handler->customlock.counter), 0x01000000, 0x00000000);
+        if (atomic_read(&(handler->customlock.counter)) == 0x00000000)
+            break;
+    }
+
+    handler->mustcall_write(gd);
+
+    atomic_set(&(handler->customlock.counter), 0x01000000);
+    return 0;
+}
+
+int customlock_read_data(struct data* gd,char* buf)
+{
+    struct cs_handler *handler = gd->handler;
+    BUG_ON(!handler->mustcall_read);
+
+    while(1) {
+        if(atomic_read(&(handler->customlock.counter)) == 0x00000000)
+            continue;
+        atomic_dec(&(handler->customlock.counter));
+        break;
+    }
+
+    handler->mustcall_read(gd, buf);
+
+    atomic_inc(&(handler->customlock.counter));
+    return 0;
+}
 
 
 
