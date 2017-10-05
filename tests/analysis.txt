@@ -1,30 +1,30 @@
 For spinlock:
-Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 808733123
-Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 842962072
-Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 889306574
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 913917590, Avg deviation: 77042164
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 989004337, Avg deviation: 34402165
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 882429767, Avg deviation: 65018911
 
 
 For RWlock:
-Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 699362718
-Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 731147810
-Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 758570909
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 628305487, Avg deviation: 9747143
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 804146779, Avg deviation: 69885331
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 739901582, Avg deviation: 27047758
 
 
 For Seqlock:
-Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 708163932
-Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 740267062
-Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 744558829
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 588623301, Avg deviation: 6460856
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 643033034, Avg deviation: 9227032
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 676859752, Avg deviation: 4063102
 
 
 For RCUlock:
-Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 638796319
-Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 19934760784
-Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 98036914907
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 586951718, Avg deviation: 4399355
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 19958236833, Avg deviation: 103223805
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 98125073060, Avg deviation: 546405816
 
 
 For RW custom lock:
-Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 769737082
-Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 906064961
-Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 773759687
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 621543431, Avg deviation: 2953366
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 681047256, Avg deviation: 13767145
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 706172751, Avg deviation: 2729913
 
 
