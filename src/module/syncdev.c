@@ -430,6 +430,7 @@ int rcu_read_data(struct data* gd,char* buf)
 int customlock_init_cs(struct data* gd)
 {
     struct cs_handler *handler = gd->handler;
+    // Max no. of allowed readers = 0x01000000
     atomic_set(&(handler->customlock.counter), 0x01000000);
     return 0;
 }
@@ -462,12 +463,14 @@ int customlock_read_data(struct data* gd,char* buf)
     BUG_ON(!handler->mustcall_read);
 
     while(1) {
+        // decrement counter variable
         if(atomic_add_unless(&(handler->customlock.counter), -1, 0x00000000))
             break;
     }
 
     handler->mustcall_read(gd, buf);
 
+    // Increment counter variable
     atomic_inc(&(handler->customlock.counter));
     return 0;
 }
