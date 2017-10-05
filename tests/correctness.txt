@@ -1,0 +1,67 @@
+Starting correctness tests for locking implementations..
+
+Spinlock testing..
+
+Total time taken = 775143712
+----------- Thread Stats ------------
+Thread = 1 num_reads = 49502 num_writes= 498 read_cycles= 669154281 write_cycles = 1857394
+Thread = 2 num_reads = 49492 num_writes= 508 read_cycles= 719771932 write_cycles = 7913251
+Thread = 3 num_reads = 49527 num_writes= 473 read_cycles= 702336032 write_cycles = 1747532
+Thread = 4 num_reads = 49518 num_writes= 482 read_cycles= 739138036 write_cycles = 1781172
+Thread = 5 num_reads = 49498 num_writes= 502 read_cycles= 720442420 write_cycles = 1846480
+Thread = 6 num_reads = 49505 num_writes= 495 read_cycles= 706236586 write_cycles = 1842734
+Thread = 7 num_reads = 49494 num_writes= 506 read_cycles= 653663472 write_cycles = 1875712
+Thread = 8 num_reads = 49522 num_writes= 478 read_cycles= 591804508 write_cycles = 1765636
+
+RWlock testing..
+
+Total time taken = 662755787
+----------- Thread Stats ------------
+Thread = 1 num_reads = 49502 num_writes= 498 read_cycles= 610932116 write_cycles = 1639596
+Thread = 2 num_reads = 49492 num_writes= 508 read_cycles= 639583380 write_cycles = 1657292
+Thread = 3 num_reads = 49527 num_writes= 473 read_cycles= 584110892 write_cycles = 1547456
+Thread = 4 num_reads = 49518 num_writes= 482 read_cycles= 604004776 write_cycles = 1584540
+Thread = 5 num_reads = 49498 num_writes= 502 read_cycles= 621179276 write_cycles = 30789988
+Thread = 6 num_reads = 49505 num_writes= 495 read_cycles= 607176301 write_cycles = 50461744
+Thread = 7 num_reads = 49494 num_writes= 506 read_cycles= 643749271 write_cycles = 2644876
+Thread = 8 num_reads = 49522 num_writes= 478 read_cycles= 618347888 write_cycles = 1962344
+
+Seqlock testing..
+
+Total time taken = 680618320
+----------- Thread Stats ------------
+Thread = 1 num_reads = 49502 num_writes= 498 read_cycles= 579431716 write_cycles = 1475568
+Thread = 2 num_reads = 49492 num_writes= 508 read_cycles= 598099320 write_cycles = 1507880
+Thread = 3 num_reads = 49527 num_writes= 473 read_cycles= 641315256 write_cycles = 1472615
+Thread = 4 num_reads = 49518 num_writes= 482 read_cycles= 580354652 write_cycles = 1510268
+Thread = 5 num_reads = 49498 num_writes= 502 read_cycles= 573600448 write_cycles = 1595252
+Thread = 6 num_reads = 49505 num_writes= 495 read_cycles= 572608172 write_cycles = 1474232
+Thread = 7 num_reads = 49494 num_writes= 506 read_cycles= 284082356 write_cycles = 1517264
+Thread = 8 num_reads = 49522 num_writes= 478 read_cycles= 284023300 write_cycles = 1436368
+
+RCUlock testing..
+
+Total time taken = 19484476102
+----------- Thread Stats ------------
+Thread = 1 num_reads = 49502 num_writes= 498 read_cycles= 437891604 write_cycles = 18652665447
+Thread = 2 num_reads = 49492 num_writes= 508 read_cycles= 420354239 write_cycles = 19056147981
+Thread = 3 num_reads = 49527 num_writes= 473 read_cycles= 437221711 write_cycles = 17715443536
+Thread = 4 num_reads = 49518 num_writes= 482 read_cycles= 427539166 write_cycles = 18110948363
+Thread = 5 num_reads = 49498 num_writes= 502 read_cycles= 424764535 write_cycles = 18822475499
+Thread = 6 num_reads = 49505 num_writes= 495 read_cycles= 438668909 write_cycles = 18594669985
+Thread = 7 num_reads = 49494 num_writes= 506 read_cycles= 407157828 write_cycles = 19069863227
+Thread = 8 num_reads = 49522 num_writes= 478 read_cycles= 419381136 write_cycles = 17946611679
+
+RWlock_custom testing..
+
+Total time taken = 674362050
+----------- Thread Stats ------------
+Thread = 1 num_reads = 49502 num_writes= 498 read_cycles= 571261234 write_cycles = 2835644
+Thread = 2 num_reads = 49492 num_writes= 508 read_cycles= 452059770 write_cycles = 69492026
+Thread = 3 num_reads = 49527 num_writes= 473 read_cycles= 518902479 write_cycles = 1956719
+Thread = 4 num_reads = 49518 num_writes= 482 read_cycles= 609386232 write_cycles = 1782108
+Thread = 5 num_reads = 49498 num_writes= 502 read_cycles= 596692356 write_cycles = 1886312
+Thread = 6 num_reads = 49505 num_writes= 495 read_cycles= 582421128 write_cycles = 1873196
+Thread = 7 num_reads = 49494 num_writes= 506 read_cycles= 585169616 write_cycles = 1865360
+Thread = 8 num_reads = 49522 num_writes= 478 read_cycles= 170667928 write_cycles = 1760550
+

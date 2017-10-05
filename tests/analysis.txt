@@ -1,0 +1,30 @@
+For spinlock:
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 808733123
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 842962072
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 889306574
+
+
+For RWlock:
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 699362718
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 731147810
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 758570909
+
+
+For Seqlock:
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 708163932
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 740267062
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 744558829
+
+
+For RCUlock:
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 638796319
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 19934760784
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 98036914907
+
+
+For RW custom lock:
+Num_threads=8, ops/thread=50000, per_read=100, per_write=0, Avg time: 769737082
+Num_threads=8, ops/thread=50000, per_read=99, per_write=1, Avg time: 906064961
+Num_threads=8, ops/thread=50000, per_read=95, per_write=5, Avg time: 773759687
+
+

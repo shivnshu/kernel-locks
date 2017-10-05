@@ -3,6 +3,9 @@
 import subprocess
 import os
 
+def change_lock(lock_num):
+    os.system("echo " + str(lock_num) + " > /sys/kernel/asg2_lock")
+
 def execute(args):
     popen = subprocess.Popen(args, stdout=subprocess.PIPE)
     popen.wait()
@@ -11,13 +14,15 @@ def execute(args):
 
 def test(lock):
     if(lock == "spinlock"):
-        os.system("echo 1 > /sys/kernel/asg2_lock")
+        change_lock(1)
     elif(lock == "rwlock"):
-        os.system("echo 2 > /sys/kernel/asg2_lock")
+        change_lock(2)
     elif(lock == "seqlock"):
-        os.system("echo 3 > /sys/kernel/asg2_lock")
+        change_lock(3)
+    elif(lock == "rcu"):
+        change_lock(4)
     elif(lock=="rwlock_custom"):
-        os.system("echo 4 > /sys/kernel/asg2_lock")
+        change_lock(5)
     
     args = ("../src/syncbench", "8", "50000", "99", "1")
     execute(args)
@@ -30,6 +35,8 @@ def start():
     test("rwlock")
     print("Seqlock testing..\n")
     test("seqlock")
+    print("RCUlock testing..\n")
+    test("rcu")
     print("RWlock_custom testing..\n")
     test("rwlock_custom")
 
