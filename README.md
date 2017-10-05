@@ -28,12 +28,16 @@ NOTE: Steps 1 to 3 are performed only when you have changed something in the mod
    Different lock type values are as follows,
 
    SPINLOCK = 1
-
-   RWLOCK = 2               /*kernel read/write lock*/
-   SEQLOCK = 3                /*kernel seqlock*/
-   RCU = 4                    /*kernel RCU*/
-   RWLOCK_CUSTOM = 5          /*Your custom read/write lock*/
-   RESEARCH_LOCK = 6        /*To improve over RCU*/
+   
+   RWLOCK = 2               _kernel read/write lock_
+   
+   SEQLOCK = 3                _kernel seqlock_
+   
+   RCU = 4                    _kernel RCU_
+   
+   RWLOCK_CUSTOM = 5          _Your custom read/write lock_
+   
+   RESEARCH_LOCK = 6        _To improve over RCU_
 
 
    e.g., to use spin locks, execute
@@ -41,9 +45,7 @@ NOTE: Steps 1 to 3 are performed only when you have changed something in the mod
 
 5. execute
            ./syncbench <numthreads> <ops/thread> <readops (%)> <writeops (%)>
-
-           e.g., ./syncbench 8 5000000 99 1
-
+           e.g., `./syncbench 8 5000000 99 1`
           Successful execution will print total and per thread CPU cycles when the above
           program terminates
 
