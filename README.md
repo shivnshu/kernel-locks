@@ -1,31 +1,26 @@
-What is inside?
----------------
-
-1. module: A kernel module that provides a chardev interface to test and measure
+## What is inside?
+1. **src/module:** A kernel module that provides a chardev interface to test and measure
    synchronization performance. It can be extended to implement custom synchronization
    constructs.
 
-2. ksync_bench.c:  User-space program to test the correctness and efficiency of underlying
-   synchronization implementation
+2. **src/ksync_bench.c:**  User-space program to test the correctness and efficiency of underlying
+   synchronization implementations
 
-How to compile?
----------------
+## How to compile?
 
-$ make
-   creates module syncdev.ko and user executable syncbench
+* `make`: creates module syncdev.ko and user executable syncbench
 
-How to run?
------------
+## How to run?
 
 1. sudo su
 
-2. # insmod module/syncdev.ko
+2. `insmod module/syncdev.ko`
 
     -- check that a new sysfs entry is created i.e., /sys/kernel/asg2_lock
        and its initial value is zero (0)
 
 3. execute dmesg and find the exact mknod command
-   e.g., # mknod /dev/syncdev c 246 0
+   e.g., `mknod /dev/syncdev c 246 0`
 
 NOTE: Steps 1 to 3 are performed only when you have changed something in the module
 
@@ -45,15 +40,14 @@ NOTE: Steps 1 to 3 are performed only when you have changed something in the mod
    echo 1 > /sys/kernel/asg2_lock
 
 5. execute
-           # ./syncbench <numthreads> <ops/thread> <readops (%)> <writeops (%)>
+           ./syncbench <numthreads> <ops/thread> <readops (%)> <writeops (%)>
 
-           e.g., #./syncbench 8 5000000 99 1
+           e.g., ./syncbench 8 5000000 99 1
 
           Successful execution will print total and per thread CPU cycles when the above
           program terminates
 
-How to implement new locks?
----------------------------
+## How to implement new locks?
 
 In the current implementation two types of lock implementation exist.
 
@@ -76,8 +70,7 @@ following changes are to be done.
 
 5. recompile the module
 
-5. unload the module if already loaded:   #rm -f /dev/syncdev
-#rmmod syncdev.ko
+5. unload the module if already loaded:   `rm -f /dev/syncdev` and `rmmod syncdev.ko`
 
 6. Follow "How to run" steps to test the newly implemented lock
 
