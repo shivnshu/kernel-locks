@@ -10,7 +10,7 @@ def execute_and_get_time(args):
     total_times = []
     read_times = []
     write_times = []
-    for i in range(10):
+    for i in range(100):
         popen = subprocess.Popen(args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
