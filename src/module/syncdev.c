@@ -22,6 +22,7 @@ struct data{
              long counter;
              long result;
              int lock_type;
+             struct rcu_head rcu;
              struct cs_handler *handler; /*generic pointer to your lock specific
                                          implementations*/
 };
@@ -57,7 +58,6 @@ struct cs_handler{
                               spinlock_t spin;
                               rwlock_t rwlock;
                               seqlock_t seqlock;
-                              struct rcu_head rcu;
                               /*Add your custom lock type here*/
                               struct customrwlock_t customlock;
                      };
@@ -381,7 +381,7 @@ int rcu_init_cs(struct data* gd)
     gblrcu_data = kmalloc(sizeof(struct data), GFP_KERNEL);
     memcpy(gblrcu_data, gd, sizeof(struct data));
     handler = gblrcu_data->handler;
-    init_rcu_head(&handler->rcu);
+    init_rcu_head(&gblrcu_data->rcu);
     spin_lock_init(&slock);
     return 0;
 }
@@ -391,6 +391,12 @@ int rcu_cleanup_cs(struct data* gd)
     memcpy(gd, gblrcu_data, sizeof(struct data));
     kfree(gblrcu_data);
     return 0;
+}
+
+void rcu_reclaim(struct rcu_head *p)
+{
+    struct data *tmp = container_of(p, struct data, rcu);
+    kfree(tmp);
 }
 
 int rcu_write_data(struct data* gd)
@@ -405,9 +411,9 @@ int rcu_write_data(struct data* gd)
     handler->mustcall_write(new_gdata);
 
     rcu_assign_pointer(gblrcu_data, new_gdata);
+
+    call_rcu(&old_gdata->rcu, rcu_reclaim);
     spin_unlock(&slock);
-    synchronize_rcu();
-    kfree(old_gdata);
 
     return 0;
 }
